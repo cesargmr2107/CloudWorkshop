@@ -72,10 +72,10 @@ jobs:
       shell: pwsh
       run: |
         $credentials = '${{ secrets.TERRAFORM_CREDENTIALS }}' | ConvertFrom-Json
-        set ARM_CLIENT_ID="$($credentials.clientId)"
-        set ARM_CLIENT_SECRET="$($credentials.clientSecret)"
-        set ARM_TENANT_ID="$($credentials.tenantId)"
-        set ARM_SUBSCRIPTION_ID="$($credentials.subscriptionId)"
+        $env:ARM_CLIENT_ID="$($credentials.clientId)"
+        $env:ARM_CLIENT_SECRET="$($credentials.clientSecret)"
+        $env:ARM_TENANT_ID="$($credentials.tenantId)"
+        $env:ARM_SUBSCRIPTION_ID="$($credentials.subscriptionId)"
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
