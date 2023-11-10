@@ -68,10 +68,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: AZ Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.TERRAFORM_CREDENTIALS }}
+    - name: Service principal authentication
+      shell: pwsh
+      run: |
+        $credentials = ${{ secrets.TERRAFORM_CREDENTIALS }} | ConvertFrom-Json
+        export ARM_CLIENT_ID=$credentials.clientId
+        export ARM_CLIENT_SECRET=$credentials.clientSecret
+        export ARM_TENANT_ID=$credentials.tenantId
+        export ARM_SUBSCRIPTION_ID=$credentials.subscriptionId
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
