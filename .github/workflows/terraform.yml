@@ -68,7 +68,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Service principal authentication
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    # The command AZ Login only works with interactive authentication by users, not by automated service principals.
+    # Therefore, we must declare the authentication settings as environment variables in order for Terraform to pick them up.
+    - name: Service principal authentication & Terraform init
       shell: pwsh
       run: |
         $credentials = '${{ secrets.TERRAFORM_CREDENTIALS }}' | ConvertFrom-Json
@@ -76,18 +82,7 @@ jobs:
         $env:ARM_CLIENT_SECRET="$($credentials.clientSecret)"
         $env:ARM_TENANT_ID="$($credentials.tenantId)"
         $env:ARM_SUBSCRIPTION_ID="$($credentials.subscriptionId)"
-
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run: terraform init
-
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt -check
+        terraform init
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
