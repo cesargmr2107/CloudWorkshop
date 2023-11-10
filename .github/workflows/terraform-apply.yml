@@ -8,7 +8,7 @@ permissions:
 jobs:
 
   terraform:
-    name: 'Terraform Plan'
+    name: 'Terraform Apply'
     env:
       # The command AZ Login only works with interactive authentication by users, not by automated service principals.
       # Therefore, we must declare the authentication settings as environment variables in order for Terraform to pick them up.
