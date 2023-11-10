@@ -53,10 +53,17 @@ permissions:
   contents: read
 
 jobs:
+
   terraform:
     name: 'Terraform'
+    env:
+      # The command AZ Login only works with interactive authentication by users, not by automated service principals.
+      # Therefore, we must declare the authentication settings as environment variables in order for Terraform to pick them up.
+      ARM_CLIENT_ID: '${{ secrets.ARM_CLIENT_ID }}'
+      ARM_CLIENT_SECRET: '${{ secrets.ARM_CLIENT_SECRET }}'
+      ARM_TENANT_ID: '${{ secrets.ARM_TENANT_ID }}'
+      ARM_SUBSCRIPTION_ID: '${{ secrets.ARM_SUBSCRIPTION_ID }}'
     runs-on: ubuntu-latest
-    environment: production
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -72,17 +79,9 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
 
-    # The command AZ Login only works with interactive authentication by users, not by automated service principals.
-    # Therefore, we must declare the authentication settings as environment variables in order for Terraform to pick them up.
-    - name: Service principal authentication & Terraform init
-      shell: pwsh
-      run: |
-        $credentials = '${{ secrets.TERRAFORM_CREDENTIALS }}' | ConvertFrom-Json
-        $env:ARM_CLIENT_ID="$($credentials.clientId)"
-        $env:ARM_CLIENT_SECRET="$($credentials.clientSecret)"
-        $env:ARM_TENANT_ID="$($credentials.tenantId)"
-        $env:ARM_SUBSCRIPTION_ID="$($credentials.subscriptionId)"
-        terraform init
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
