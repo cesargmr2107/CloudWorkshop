@@ -71,7 +71,7 @@ jobs:
     - name: Service principal authentication
       shell: pwsh
       run: |
-        $credentials = "${{ secrets.TERRAFORM_CREDENTIALS }}" | ConvertFrom-Json
+        $credentials = '${{ secrets.TERRAFORM_CREDENTIALS }}' | ConvertFrom-Json
         export ARM_CLIENT_ID="$($credentials.clientId)"
         export ARM_CLIENT_SECRET="$($credentials.clientSecret)
         export ARM_TENANT_ID="$($credentials.tenantId)
