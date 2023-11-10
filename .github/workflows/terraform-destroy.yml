@@ -1,8 +1,6 @@
-name: 'Terraform Plan'
+name: 'Terraform Destroy'
 
-on:
-  push:
-    branches: [ "main" ]
+on: workflow_dispatch
 
 permissions:
   contents: read
@@ -38,6 +36,6 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: terraform plan -input=false
+      # Deploy infrastructure changes
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve -input=false
