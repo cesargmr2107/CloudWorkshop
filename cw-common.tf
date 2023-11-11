@@ -31,6 +31,6 @@ resource "azurerm_subnet" "cw-subnets" {
   // Subnet parameters assignment 
   name                 = each.key
   address_prefixes     = each.value
-  resource_group_name  = azurerm_resource_group.cw-iaas-app-rg.name
+  resource_group_name  = azurerm_virtual_network.cw-common-vnet.resource_group_name
   virtual_network_name = azurerm_virtual_network.cw-common-vnet.name
 }
