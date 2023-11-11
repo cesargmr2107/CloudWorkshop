@@ -6,10 +6,10 @@ terraform {
     }
   }
   backend "azurerm" {
-      resource_group_name  = "cw-common-rg"
-      storage_account_name = "cwterraformbackend"
-      container_name       = "terraform-backend"
-      key                  = "terraform.tfstate"
+    resource_group_name  = "cw-common-rg"
+    storage_account_name = "cwterraformbackend"
+    container_name       = "terraform-backend"
+    key                  = "terraform.tfstate"
   }
 
 }
