@@ -34,3 +34,22 @@ resource "azurerm_subnet" "cw-subnets" {
   resource_group_name  = azurerm_virtual_network.cw-common-vnet.resource_group_name
   virtual_network_name = azurerm_virtual_network.cw-common-vnet.name
 }
+
+// LOAD BALANCER
+resource "azurerm_lb" "cw-common-lb" {
+  name                = "cw-common-lb"
+  location            = data.azurerm_resource_group.cw-common-rg.location
+  resource_group_name = data.azurerm_resource_group.cw-common-rg.name
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = azurerm_public_ip.cw-common-public-ip.id
+  }
+}
+
+resource "azurerm_public_ip" "cw-common-public-ip" {
+  name                = "cw-common-public-ip"
+  location            = data.azurerm_resource_group.cw-common-rg.location
+  resource_group_name = data.azurerm_resource_group.cw-common-rg.name
+  allocation_method   = "Static"
+}

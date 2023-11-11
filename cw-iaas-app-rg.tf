@@ -6,12 +6,12 @@ resource "azurerm_resource_group" "cw-iaas-app-rg" {
 
 // VIRTUAL MACHINE
 resource "azurerm_linux_virtual_machine" "cw-iaas-app-vm" {
-  name                = "cw-iaas-app-vm"
-  resource_group_name = azurerm_resource_group.cw-iaas-app-rg.name
-  location            = azurerm_resource_group.cw-iaas-app-rg.location
-  size                = "Standard_B1s"
-  admin_username      = "adminuser"
-  admin_password      = data.azurerm_key_vault_secret.vm-secret.value
+  name                            = "cw-iaas-app-vm"
+  resource_group_name             = azurerm_resource_group.cw-iaas-app-rg.name
+  location                        = azurerm_resource_group.cw-iaas-app-rg.location
+  size                            = "Standard_B1s"
+  admin_username                  = "adminuser"
+  admin_password                  = data.azurerm_key_vault_secret.vm-secret.value
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.cw-iaas-app-vm-nic.id,
