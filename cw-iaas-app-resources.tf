@@ -70,6 +70,6 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
 
 resource "azurerm_network_interface_backend_address_pool_association" "example" {
   network_interface_id    = azurerm_network_interface.cw-iaas-app-vm-nic.id
-  ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration.name
+  ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration[0].name
   backend_address_pool_id = azurerm_lb_backend_address_pool.cw-common-lb-backend-pool.id
 }
