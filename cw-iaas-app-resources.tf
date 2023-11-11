@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
   resource_group_name = azurerm_resource_group.cw-iaas-app-rg.name
 
   ip_configuration {
-    name                          = "internal"
+    name                          = "cw-iaas-app-vm-nic-configuration"
     subnet_id                     = azurerm_subnet.cw-subnets["cw-iaas-app-internal"].id
     private_ip_address_allocation = "Dynamic"
   }
@@ -70,6 +70,6 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
 
 resource "azurerm_network_interface_backend_address_pool_association" "example" {
   network_interface_id    = azurerm_network_interface.cw-iaas-app-vm-nic.id
-  ip_configuration_name   = "cw-common-lb-backend-pool-iaas-address-association"
+  ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration.name
   backend_address_pool_id = azurerm_lb_backend_address_pool.cw-common-lb-backend-pool.id
 }
