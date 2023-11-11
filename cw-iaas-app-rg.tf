@@ -12,6 +12,7 @@ resource "azurerm_linux_virtual_machine" "cw-iaas-app-vm" {
   size                = "Standard_B1s"
   admin_username      = "adminuser"
   admin_password      = data.azurerm_key_vault_secret.vm-secret.value
+  disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.cw-iaas-app-vm-nic.id,
   ]
