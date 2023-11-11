@@ -55,6 +55,7 @@ resource "azurerm_public_ip" "cw-common-lb-public-ip" {
 }
 
 resource "azurerm_lb_backend_address_pool" "cw-common-lb-backend-pool" {
-  loadbalancer_id = azurerm_lb.cw-common-lb.id
-  name            = "cw-common-lb-backend-pool"
+  name               = "cw-common-lb-backend-pool"
+  loadbalancer_id    = azurerm_lb.cw-common-lb.id
+  virtual_network_id = azurerm_virtual_network.cw-common-vnet.id
 }

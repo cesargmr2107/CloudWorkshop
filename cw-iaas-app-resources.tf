@@ -8,10 +8,10 @@ resource "azurerm_resource_group" "cw-iaas-app-rg" {
 resource "azurerm_linux_virtual_machine" "cw-iaas-app-vm" {
 
   // Basic info
-  name                            = "cw-iaas-app-vm"
-  resource_group_name             = azurerm_resource_group.cw-iaas-app-rg.name
-  location                        = azurerm_resource_group.cw-iaas-app-rg.location
-  size                            = "Standard_B1s"
+  name                = "cw-iaas-app-vm"
+  resource_group_name = azurerm_resource_group.cw-iaas-app-rg.name
+  location            = azurerm_resource_group.cw-iaas-app-rg.location
+  size                = "Standard_B1s"
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
@@ -37,7 +37,7 @@ resource "azurerm_linux_virtual_machine" "cw-iaas-app-vm" {
     sku       = "22_04-lts"
     version   = "latest"
   }
- 
+
 }
 
 // VIRTUAL MACHINE ADMIN SECRET FROM KEY VAULT
@@ -68,7 +68,7 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
 //   ip_address              = azurerm_linux_virtual_machine.cw-iaas-app-vm.private_ip_address
 // }
 
-resource "azurerm_network_interface_backend_address_pool_association" "example" {
+resource "azurerm_network_interface_backend_address_pool_association" "cw-common-lb-backend-pool-iaas-association" {
   network_interface_id    = azurerm_network_interface.cw-iaas-app-vm-nic.id
   ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration[0].name
   backend_address_pool_id = azurerm_lb_backend_address_pool.cw-common-lb-backend-pool.id
