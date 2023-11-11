@@ -63,7 +63,7 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
 // BACKEND POOL CONFIG
 resource "azurerm_lb_backend_address_pool_address" "cw-common-lb-backend-pool-iaas" {
   name                    = "cw-common-lb-backend-pool-iaas-address"
-  backend_address_pool_id = azurerm_lb.cw-common-lb.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.cw-common-lb-backend-pool.id
   virtual_network_id      = azurerm_virtual_network.cw-common-vnet.id
   ip_address              = azurerm_linux_virtual_machine.cw-iaas-app-vm.private_ip_address
 }
