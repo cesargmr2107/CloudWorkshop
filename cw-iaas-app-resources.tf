@@ -55,21 +55,41 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
 
   ip_configuration {
     name                          = "cw-iaas-app-vm-nic-configuration"
-    subnet_id                     = azurerm_subnet.cw-subnets["cw-iaas-app-internal"].id
+    subnet_id                     = azurerm_subnet.cw-subnets["cw-iaas-web-app"].id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 // BACKEND POOL CONFIG
-// resource "azurerm_lb_backend_address_pool_address" "cw-common-lb-backend-pool-iaas" {
-//   name                    = "cw-common-lb-backend-pool-iaas-address"
-//   backend_address_pool_id = azurerm_lb_backend_address_pool.cw-common-lb-backend-pool.id
-//   virtual_network_id      = azurerm_virtual_network.cw-common-vnet.id
-//   ip_address              = azurerm_linux_virtual_machine.cw-iaas-app-vm.private_ip_address
-// }
 
-resource "azurerm_network_interface_backend_address_pool_association" "cw-common-lb-backend-pool-iaas-association" {
+resource "azurerm_lb_backend_address_pool" "lb-iaas-backend-pool" {
+  name            = "lb-iaas-backend-pool"
+  loadbalancer_id = azurerm_lb.cw-common-lb.id
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "lb-iaas-backend-pool-association" {
   network_interface_id    = azurerm_network_interface.cw-iaas-app-vm-nic.id
   ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration[0].name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.cw-common-lb-backend-pool.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.lb-iaas-backend-pool.id
+}
+
+resource "azurerm_lb_rule" "lb-iaas-web-rule" {
+  # Definition of all backend rules
+  for_each = {
+    "lb-iaas-web-rule" = {
+      "frontend_port" = var.cw-iaas-app-port,
+      "backend_port"  = 80
+    }
+  }
+
+  # Assigment of values
+  loadbalancer_id                = azurerm_lb.cw-common-lb.id
+  name                           = each.key
+  protocol                       = "Tcp"
+  frontend_port                  = each.value.frontend_port
+  backend_port                   = each.value.backend_port
+  frontend_ip_configuration_name = azurerm_lb.cw-common-lb.frontend_ip_configuration[0].name
+  backend_address_pool_ids = [
+    azurerm_lb_backend_address_pool.lb-iaas-backend-pool.id
+  ]
 }

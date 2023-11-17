@@ -1,21 +1,9 @@
 #!/bin/bash
 
 # Install apache web server
-sudo apt update
-sudo apt install apache2
+apt update -y
+apt install -y apache2
 
-echo "<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>My Website</title>
-  </head>
-  <body>
-    <main>
-        <h1>Welcome to My Website</h1>  
-    </main>
-  </body>
-</html>" > "/var/www/index.html"
- 
+# Enable and start apache2 service
+systemctl enable apache2
+systemctl start apache2
