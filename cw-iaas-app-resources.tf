@@ -38,6 +38,12 @@ resource "azurerm_linux_virtual_machine" "cw-iaas-app-vm" {
     version   = "latest"
   }
 
+  // Boot diagnostics to enable serial console
+  // Null value to use Microsoft managed storage account
+  boot_diagnostics {
+    storage_account_uri = null
+  }
+
 }
 
 // VIRTUAL MACHINE ADMIN SECRET FROM KEY VAULT
