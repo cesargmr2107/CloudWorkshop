@@ -68,28 +68,48 @@ resource "azurerm_network_interface" "cw-iaas-app-vm-nic" {
 
 // BACKEND POOL CONFIG
 
-// IaaS app address pool
-resource "azurerm_lb_backend_address_pool" "lb-iaas-backend-pool" {
-  name            = "lb-iaas-backend-pool"
-  loadbalancer_id = azurerm_lb.cw-common-lb.id
-}
+# // IaaS app address pool
+# resource "azurerm_lb_backend_address_pool" "lb-iaas-backend-pool" {
+#   name            = "lb-iaas-backend-pool"
+#   loadbalancer_id = azurerm_lb.cw-common-lb.id
+# }
+# 
+# // IaaS app address pool association to NIC
+# resource "azurerm_network_interface_backend_address_pool_association" "lb-iaas-backend-pool-association" {
+#   network_interface_id    = azurerm_network_interface.cw-iaas-app-vm-nic.id
+#   ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration[0].name
+#   backend_address_pool_id = azurerm_lb_backend_address_pool.lb-iaas-backend-pool.id
+# }
+# 
+# // IaaS load balancing rule
+# resource "azurerm_lb_rule" "lb-iaas-web-rule" {
+#   name                           = "lb-iaas-web-rule"
+#   loadbalancer_id                = azurerm_lb.cw-common-lb.id
+#   protocol                       = "Tcp"
+#   frontend_port                  = var.cw-iaas-app-port
+#   backend_port                   = 80
+#   frontend_ip_configuration_name = azurerm_lb.cw-common-lb.frontend_ip_configuration[0].name
+#   backend_address_pool_ids = [
+#     azurerm_lb_backend_address_pool.lb-iaas-backend-pool.id
+#   ]
+# }
 
-// IaaS app address pool association to NIC
-resource "azurerm_network_interface_backend_address_pool_association" "lb-iaas-backend-pool-association" {
-  network_interface_id    = azurerm_network_interface.cw-iaas-app-vm-nic.id
-  ip_configuration_name   = azurerm_network_interface.cw-iaas-app-vm-nic.ip_configuration[0].name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.lb-iaas-backend-pool.id
-}
-
-// IaaS load balancing rule
-resource "azurerm_lb_rule" "lb-iaas-web-rule" {
-  name                           = "lb-iaas-web-rule"
-  loadbalancer_id                = azurerm_lb.cw-common-lb.id
-  protocol                       = "Tcp"
-  frontend_port                  = var.cw-iaas-app-port
-  backend_port                   = 80
-  frontend_ip_configuration_name = azurerm_lb.cw-common-lb.frontend_ip_configuration[0].name
-  backend_address_pool_ids = [
-    azurerm_lb_backend_address_pool.lb-iaas-backend-pool.id
-  ]
-}
+# module "lb-iaas-backend-pool" {
+#   # Module source
+#   source = "./tf_modules/lb_backend_address_pool"
+# 
+#   # Context input
+#   name                              = "lb-iaas-backend-pool"
+#   load_balancer_id                  = azurerm_lb.cw-common-lb.id
+#   lb_frontend_ip_configuration_name = azurerm_lb.cw-common-lb.frontend_ip_configuration[0].name
+#   nic_id                            = azurerm_network_interface.cw-iaas-app-vm-nic.id
+# 
+#   # Load balancing rules
+#   lb_rules = {
+#     "lb-iaas-web-rule" = {
+#       protocol      = "Tcp"
+#       frontend_port = var.cw-iaas-app-port
+#       backend_port  = 80
+#     }
+#   }
+# }
