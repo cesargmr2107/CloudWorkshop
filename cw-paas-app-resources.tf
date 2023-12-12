@@ -35,8 +35,8 @@ resource "azurerm_linux_web_app" "cw-paas-app-asw" {
 
 resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
   app_id             = azurerm_linux_web_app.cw-paas-app-asw.id
-  repo_url           = "https://github.com/Azure-Samples/nodejs-docs-hello-world"
-  branch             = "master"
+  repo_url           = "https://github.com/cesargmr2107/CloudWorkshop/tree/main/www"
+  branch             = "main"
   use_manual_integration = true
   use_mercurial      = false
 }
