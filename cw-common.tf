@@ -22,11 +22,11 @@ resource "azurerm_subnet" "cw-subnets" {
 
   // Subnet parameters definition
   for_each = {
-    "cw-gateway-subnet"            = ["10.0.0.0/24"]
-    "cw-iaas-web-app"              = ["10.0.1.0/24"],
-    "cw-paas-web-app-frontend-pe"  = ["10.0.2.0/24"],
-    "cw-paas-web-app-frontend-int" = ["10.0.3.0/24"],
-    "cw-paas-web-app-backend"      = ["10.0.4.0/24"]
+    "cw-app-gateway-subnet"      = ["10.0.0.0/24"],
+    "cw-iaas-web-app-subnet"     = ["10.0.1.0/24"],
+    "cw-paas-web-app-pe-subnet"  = ["10.0.2.0/24"],
+    "cw-paas-web-app-int-subnet" = ["10.0.3.0/24"],
+    "cw-backend-subnet"          = ["10.0.4.0/24"]
   }
 
   // Subnet parameters assignment 
@@ -34,6 +34,20 @@ resource "azurerm_subnet" "cw-subnets" {
   address_prefixes     = each.value
   resource_group_name  = azurerm_virtual_network.cw-common-vnet.resource_group_name
   virtual_network_name = azurerm_virtual_network.cw-common-vnet.name
+
+  // Delegation for App Service VNet Integration if subnet is "cw-paas-web-app-int-subnet"
+  dynamic "delegation" {
+    for_each = each.key == "cw-paas-web-app-int-subnet" ? toset([1]) : toset([])
+    content {
+      name = "delegation"
+      service_delegation {
+        name = "Microsoft.Web/serverFarms"
+        actions = [
+          "Microsoft.Network/virtualNetworks/subnets/action"
+        ]
+      }
+    }
+  }
 }
 
 // NETWORK SECURITY GROUP
@@ -54,9 +68,9 @@ resource "azurerm_network_security_rule" "cw-common-nsg-rule1" {
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_ranges     = ["80", "443"]
+  destination_port_ranges     = [var.cw-iaas-app-port, var.cw-paas-app-port]
   source_address_prefix       = "*"
-  destination_address_prefix  = "VirtualNetwork"
+  destination_address_prefix  = "*"
 }
 
 # Allow incoming Internet traffic to App Gateway
@@ -71,7 +85,7 @@ resource "azurerm_network_security_rule" "cw-common-nsg-rule2" {
   source_port_range           = "*"
   destination_port_range      = "65200-65535"
   source_address_prefix       = "*"
-  destination_address_prefix  = azurerm_subnet.cw-subnets["cw-gateway-subnet"].address_prefixes[0]
+  destination_address_prefix  = "*"
 }
 
 resource "azurerm_subnet_network_security_group_association" "cw-common-nsg-association" {
@@ -80,25 +94,133 @@ resource "azurerm_subnet_network_security_group_association" "cw-common-nsg-asso
   network_security_group_id = azurerm_network_security_group.cw-common-nsg.id
 }
 
+// APP GATEWAY
 
-// LOAD BALANCER
-resource "azurerm_lb" "cw-common-lb" {
-  name                = "cw-common-lb"
-  sku                 = "Standard"
-  location            = data.azurerm_resource_group.cw-common-rg.location
-  resource_group_name = data.azurerm_resource_group.cw-common-rg.name
-
-  frontend_ip_configuration {
-    name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.cw-common-lb-public-ip.id
-  }
-}
-
-resource "azurerm_public_ip" "cw-common-lb-public-ip" {
-  name                = "cw-common-lb-public-ip"
+resource "azurerm_public_ip" "cw-app-gateway-public-ip" {
+  name                = "cw-app-gateway-public-ip"
   sku                 = "Standard"
   location            = data.azurerm_resource_group.cw-common-rg.location
   resource_group_name = data.azurerm_resource_group.cw-common-rg.name
   allocation_method   = "Static"
 }
 
+resource "azurerm_application_gateway" "cw-app-gateway" {
+
+  # BASIC APP GATEWAY SETTINGS
+  name                = "cw-app-gateway"
+  resource_group_name = data.azurerm_resource_group.cw-common-rg.name
+  location            = data.azurerm_resource_group.cw-common-rg.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "cw-app-gateway-subnet-configuration"
+    subnet_id = azurerm_subnet.cw-subnets["cw-app-gateway-subnet"].id
+  }
+
+  frontend_ip_configuration {
+    name                 = "cw-app-gateway-frontend-ip-config"
+    public_ip_address_id = azurerm_public_ip.cw-app-gateway-public-ip.id
+  }
+
+  # IAAS BACKEND SETTINGS
+
+  frontend_port {
+    name = "cw-app-gateway-iaas-frontend-port"
+    port = var.cw-iaas-app-port
+  }
+
+  backend_address_pool {
+    name         = "cw-app-gateway-iaas-backend-pool"
+    ip_addresses = azurerm_network_interface.cw-iaas-app-vm-nic.private_ip_addresses
+  }
+
+  probe {
+    name                = "cw-app-gateway-iaas-probe"
+    host                = "127.0.0.1"
+    interval            = 10
+    timeout             = 60
+    unhealthy_threshold = 1
+    port                = 80
+    protocol            = "Http"
+    path                = "/"
+  }
+
+  backend_http_settings {
+    name                  = "cw-app-gateway-iaas-backend-http-settings"
+    probe_name            = "cw-app-gateway-iaas-probe"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "cw-app-gateway-iaas-listener"
+    frontend_ip_configuration_name = "cw-app-gateway-frontend-ip-config"
+    frontend_port_name             = "cw-app-gateway-iaas-frontend-port"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "cw-app-gateway-iaas-routing-rule"
+    rule_type                  = "Basic"
+    priority                   = 10
+    http_listener_name         = "cw-app-gateway-iaas-listener"
+    backend_address_pool_name  = "cw-app-gateway-iaas-backend-pool"
+    backend_http_settings_name = "cw-app-gateway-iaas-backend-http-settings"
+  }
+
+  # PAAS BACKEND SETTINGS
+
+  frontend_port {
+    name = "cw-app-gateway-paas-frontend-port"
+    port = var.cw-paas-app-port
+  }
+
+  backend_address_pool {
+    name  = "cw-app-gateway-paas-backend-pool"
+    fqdns = [azurerm_linux_web_app.cw-paas-app-asw.default_hostname]
+  }
+
+  probe {
+    name                                      = "cw-app-gateway-paas-probe"
+    pick_host_name_from_backend_http_settings = true
+    interval                                  = 10
+    timeout                                   = 60
+    unhealthy_threshold                       = 1
+    port                                      = 443
+    protocol                                  = "Https"
+    path                                      = "/"
+  }
+
+  backend_http_settings {
+    name                                = "cw-app-gateway-paas-backend-http-settings"
+    probe_name                          = "cw-app-gateway-paas-probe"
+    pick_host_name_from_backend_address = true
+    cookie_based_affinity               = "Disabled"
+    port                                = 443
+    protocol                            = "Https"
+    request_timeout                     = 1
+  }
+
+  http_listener {
+    name                           = "cw-app-gateway-paas-listener"
+    frontend_ip_configuration_name = "cw-app-gateway-frontend-ip-config"
+    frontend_port_name             = "cw-app-gateway-paas-frontend-port"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "cw-app-gateway-paas-routing-rule"
+    rule_type                  = "Basic"
+    priority                   = 20
+    http_listener_name         = "cw-app-gateway-paas-listener"
+    backend_address_pool_name  = "cw-app-gateway-paas-backend-pool"
+    backend_http_settings_name = "cw-app-gateway-paas-backend-http-settings"
+  }
+}

@@ -23,22 +23,59 @@ resource "azurerm_linux_web_app" "cw-paas-app-asw" {
 
   https_only = true
 
-  site_config {
-    minimum_tls_version = "1.2"
-  }
+  virtual_network_subnet_id = azurerm_subnet.cw-subnets["cw-paas-web-app-int-subnet"].id
 
+  site_config {
+    always_on                   = true
+    default_documents           = ["index.html"]
+    ftps_state                  = "Disabled"
+    managed_pipeline_mode       = "Integrated"
+    minimum_tls_version         = "1.2"
+    scm_minimum_tls_version     = "1.2"
+    scm_use_main_ip_restriction = false
+    use_32_bit_worker           = true
+    application_stack {
+      python_version = "3.9"
+    }
+    ip_restriction {
+      name       = "DenyAllInternetTraffic"
+      action     = "Deny"
+      ip_address = "0.0.0.0/0"
+    }
+    scm_ip_restriction {
+      name       = "AllowAllDeploymentTraffic"
+      action     = "Allow"
+      ip_address = "0.0.0.0/0"
+    }
+  }
   identity {
     type = "SystemAssigned"
+  }
+
+  logs {
+    application_logs {
+      file_system_level = "Verbose"
+    }
   }
 
 }
 
 resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
-  app_id             = azurerm_linux_web_app.cw-paas-app-asw.id
-  repo_url           = "https://github.com/cesargmr2107/CloudWorkshop/tree/main/www"
-  branch             = "main"
-  use_manual_integration = true
-  use_mercurial      = false
+  app_id                 = azurerm_linux_web_app.cw-paas-app-asw.id
+  branch                 = "main"
+  repo_url               = "https://github.com/cesargmr2107/CloudWorkshopWeb"
+  rollback_enabled       = false
+  use_manual_integration = false
+  use_mercurial          = false
+
+  github_action_configuration {
+    generate_workflow_file = true
+    code_configuration {
+      runtime_stack   = "python"
+      runtime_version = "3.9"
+    }
+  }
+
 }
 
 # PRIVATE NETWORKING 
@@ -61,30 +98,7 @@ module "cw-paas-app-asw-endpoint" {
   resource_group_name                = azurerm_resource_group.cw-paas-app-rg.name
   private_link_enabled_resource_name = azurerm_linux_web_app.cw-paas-app-asw.name
   private_link_enabled_resource_id   = azurerm_linux_web_app.cw-paas-app-asw.id
-  subnet_id                          = azurerm_subnet.cw-subnets["cw-paas-web-app-frontend-pe"].id
+  subnet_id                          = azurerm_subnet.cw-subnets["cw-paas-web-app-pe-subnet"].id
   subresource_names                  = ["sites"]
   private_dns_zone_id                = azurerm_private_dns_zone.cw-paas-app-asw-dns-zone.id
 }
-
-# LOAD BALANCER BACKEND POOL
-
-# module "lb-paas-backend-pool" {
-#   # Module source
-#   source = "./tf_modules/lb_backend_address_pool"
-# 
-#   # Context input
-#   name                              = "lb-paas-backend-pool"
-#   load_balancer_id                  = azurerm_lb.cw-common-lb.id
-#   lb_frontend_ip_configuration_name = azurerm_lb.cw-common-lb.frontend_ip_configuration[0].name
-#   ip_address                        = module.cw-paas-app-asw-endpoint.ip_address
-#   vnet_id                           = azurerm_virtual_network.cw-common-vnet.id
-# 
-#   # Load balancing rules
-#   lb_rules = {
-#     "lb-paas-web-rule" = {
-#       protocol      = "Tcp"
-#       frontend_port = var.cw-paas-app-port
-#       backend_port  = 443
-#     }
-#   }
-# }
