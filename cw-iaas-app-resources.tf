@@ -18,10 +18,17 @@ resource "azurerm_linux_virtual_machine" "cw-iaas-app-vm" {
   }
 
   // User data
-  user_data = filebase64("./cw-iaas-app-user-data.sh")
+  user_data = base64encode(templatefile(
+    "./scripts/cw-iaas-app-vm-user-data.sh",
+    {
+      vm_user = var.vm-user,
+      app_repo = var.app-github-repo,
+      db_connection_string = local.db_connection_string
+    }
+  ))
 
   // Credentials
-  admin_username                  = "adminuser"
+  admin_username                  = var.vm-user
   admin_password                  = data.azurerm_key_vault_secret.vm-secret.value
   disable_password_authentication = false
 

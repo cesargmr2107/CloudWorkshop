@@ -13,13 +13,13 @@ resource "azurerm_service_plan" "cw-paas-app-asp" {
 
 resource "azurerm_linux_web_app" "cw-paas-app-asw" {
 
-  # Basic info
+  // Basic info
   name                = "cw-paas-app-asw"
   resource_group_name = azurerm_resource_group.cw-paas-app-rg.name
   location            = azurerm_resource_group.cw-paas-app-rg.location
   service_plan_id     = azurerm_service_plan.cw-paas-app-asp.id
 
-  # Settings
+  // Settings
 
   https_only = true
 
@@ -48,10 +48,15 @@ resource "azurerm_linux_web_app" "cw-paas-app-asw" {
       ip_address = "0.0.0.0/0"
     }
   }
-  identity {
-    type = "SystemAssigned"
+
+  // Connection string for DB access
+  connection_string {
+    type  = "SQLAzure"
+    name  = "DB_CONNECTION_STRING"
+    value = local.db_connection_string
   }
 
+  // Application logging
   logs {
     application_logs {
       file_system_level = "Verbose"
@@ -60,10 +65,13 @@ resource "azurerm_linux_web_app" "cw-paas-app-asw" {
 
 }
 
+// GITHUB CONNECTION
+// Note: this may fail on the first apply. It can be configured manually the first time because authentication is needed.
+// This will create all necessary components (settings on both Azure and Github sides) and then Terraform will work flawlessly.
 resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
   app_id                 = azurerm_linux_web_app.cw-paas-app-asw.id
   branch                 = "main"
-  repo_url               = "https://github.com/cesargmr2107/CloudWorkshopWeb"
+  repo_url               = var.app-github-repo
   rollback_enabled       = false
   use_manual_integration = false
   use_mercurial          = false
@@ -78,7 +86,7 @@ resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
 
 }
 
-# PRIVATE NETWORKING 
+// PRIVATE NETWORKING 
 
 resource "azurerm_private_dns_zone" "cw-paas-app-asw-dns-zone" {
   name                = "privatelink.azurewebsites.net"

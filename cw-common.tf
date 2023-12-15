@@ -9,6 +9,12 @@ data "azurerm_key_vault" "cw-common-kv" {
   resource_group_name = data.azurerm_resource_group.cw-common-rg.name
 }
 
+// EXISTING BACKEND STORAGE ACCOUNT
+data "azurerm_storage_account" "cwterraformbackend" {
+  name                = "cwterraformbackend"
+  resource_group_name = data.azurerm_resource_group.cw-common-rg.name
+}
+
 // VIRTUAL NETWORK
 resource "azurerm_virtual_network" "cw-common-vnet" {
   name                = "cw-common-vnet"
@@ -26,7 +32,7 @@ resource "azurerm_subnet" "cw-subnets" {
     "cw-iaas-web-app-subnet"     = ["10.0.1.0/24"],
     "cw-paas-web-app-pe-subnet"  = ["10.0.2.0/24"],
     "cw-paas-web-app-int-subnet" = ["10.0.3.0/24"],
-    "cw-backend-subnet"          = ["10.0.4.0/24"]
+    "cw-data-subnet"          = ["10.0.4.0/24"]
   }
 
   // Subnet parameters assignment 
@@ -58,7 +64,7 @@ resource "azurerm_network_security_group" "cw-common-nsg" {
 
 }
 
-# Allow web traffic from Internet
+// Allow web traffic from Internet
 resource "azurerm_network_security_rule" "cw-common-nsg-rule1" {
   network_security_group_name = azurerm_network_security_group.cw-common-nsg.name
   resource_group_name         = azurerm_network_security_group.cw-common-nsg.resource_group_name
@@ -73,7 +79,7 @@ resource "azurerm_network_security_rule" "cw-common-nsg-rule1" {
   destination_address_prefix  = "*"
 }
 
-# Allow incoming Internet traffic to App Gateway
+// Allow incoming Internet traffic to App Gateway
 resource "azurerm_network_security_rule" "cw-common-nsg-rule2" {
   network_security_group_name = azurerm_network_security_group.cw-common-nsg.name
   resource_group_name         = azurerm_network_security_group.cw-common-nsg.resource_group_name
@@ -106,7 +112,7 @@ resource "azurerm_public_ip" "cw-app-gateway-public-ip" {
 
 resource "azurerm_application_gateway" "cw-app-gateway" {
 
-  # BASIC APP GATEWAY SETTINGS
+  // BASIC APP GATEWAY SETTINGS
   name                = "cw-app-gateway"
   resource_group_name = data.azurerm_resource_group.cw-common-rg.name
   location            = data.azurerm_resource_group.cw-common-rg.location
@@ -127,7 +133,7 @@ resource "azurerm_application_gateway" "cw-app-gateway" {
     public_ip_address_id = azurerm_public_ip.cw-app-gateway-public-ip.id
   }
 
-  # IAAS BACKEND SETTINGS
+  // IAAS BACKEND SETTINGS
 
   frontend_port {
     name = "cw-app-gateway-iaas-frontend-port"
@@ -175,7 +181,7 @@ resource "azurerm_application_gateway" "cw-app-gateway" {
     backend_http_settings_name = "cw-app-gateway-iaas-backend-http-settings"
   }
 
-  # PAAS BACKEND SETTINGS
+  // PAAS BACKEND SETTINGS
 
   frontend_port {
     name = "cw-app-gateway-paas-frontend-port"
