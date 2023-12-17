@@ -85,7 +85,7 @@ resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
 
 }
 
-//  Personal GitHub token with workflow permissions on repo
+//  Personal GitHub token (PAT) with repo and workflow permissions
 resource "azurerm_source_control_token" "cw-paas-app-source-control-token" {
   type  = "GitHub"
   token = data.azurerm_key_vault_secret.github-token.value
