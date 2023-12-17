@@ -66,8 +66,7 @@ resource "azurerm_linux_web_app" "cw-paas-app-asw" {
 }
 
 // GITHUB CONNECTION
-// Note: this may fail on the first apply. It can be configured manually the first time because authentication is needed.
-// This will create all necessary components (settings on both Azure and Github sides) and then Terraform will work flawlessly.
+
 resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
   app_id                 = azurerm_linux_web_app.cw-paas-app-asw.id
   branch                 = "main"
@@ -84,6 +83,17 @@ resource "azurerm_app_service_source_control" "cw-paas-app-source-control" {
     }
   }
 
+}
+
+//  Personal GitHub token with workflow permissions on repo
+resource "azurerm_source_control_token" "example" {
+  type  = "GitHub"
+  token = data.azurerm_key_vault_secret.github-token
+}
+
+data "azurerm_key_vault_secret" "github-token" {
+  name         = "github-token"
+  key_vault_id = data.azurerm_key_vault.cw-common-kv.id
 }
 
 // PRIVATE NETWORKING 
