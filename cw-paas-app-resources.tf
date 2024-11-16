@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "cw-paas-app-rg" {
   name     = "cw-paas-app-rg"
-  location = "westeurope"
+  location = var.location
 }
 
 resource "azurerm_service_plan" "cw-paas-app-asp" {

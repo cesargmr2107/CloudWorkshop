@@ -1,3 +1,8 @@
+variable "location" {
+  type    = string
+  default = "spaincentral"
+}
+
 variable "cw-iaas-app-port" {
   type    = number
   default = 8081

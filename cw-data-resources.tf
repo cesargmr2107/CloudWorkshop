@@ -1,7 +1,7 @@
 // RESOURCE GROUP
 resource "azurerm_resource_group" "cw-data-rg" {
   name     = "cw-data-rg"
-  location = "westeurope"
+  location = var.location
 }
 
 // MSSQL SERVER & DATABASE

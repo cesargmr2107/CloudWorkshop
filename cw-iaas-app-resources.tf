@@ -1,7 +1,7 @@
 // RESOURCE GROUP
 resource "azurerm_resource_group" "cw-iaas-app-rg" {
   name     = "cw-iaas-app-rg"
-  location = "westeurope"
+  location = var.location
 }
 
 // VIRTUAL MACHINE
