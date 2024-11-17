@@ -1,13 +1,13 @@
-// RESOURCE GROUP
+# RESOURCE GROUP
 resource "azurerm_resource_group" "iaas_app_rg" {
   name     = "${var.iaas_app_name_prefix}-rg"
   location = var.common_location
 }
 
-// VIRTUAL MACHINE
+# VIRTUAL MACHINE
 resource "azurerm_linux_virtual_machine" "iaas_app_vm" {
 
-  // Basic info
+  # Basic info
   name                = "${var.iaas_app_name_prefix}-vm"
   resource_group_name = azurerm_resource_group.iaas_app_rg.name
   location            = azurerm_resource_group.iaas_app_rg.location
@@ -17,7 +17,7 @@ resource "azurerm_linux_virtual_machine" "iaas_app_vm" {
     storage_account_type = "Standard_LRS"
   }
 
-  // User data
+  # User data
   user_data = base64encode(templatefile(
     "./scripts/vm_setup.sh",
     {
@@ -27,17 +27,17 @@ resource "azurerm_linux_virtual_machine" "iaas_app_vm" {
     }
   ))
 
-  // Credentials
+  # Credentials
   admin_username                  = var.iaas_app_vm_admin
   admin_password                  = data.azurerm_key_vault_secret.vm_secret.value
   disable_password_authentication = false
 
-  // NIC assignment (NIC declared below)
+  # NIC assignment (NIC declared below)
   network_interface_ids = [
     azurerm_network_interface.iaas_app_vm_nic.id,
   ]
 
-  // OS version
+  # OS version
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -45,21 +45,21 @@ resource "azurerm_linux_virtual_machine" "iaas_app_vm" {
     version   = "latest"
   }
 
-  // Boot diagnostics to enable serial console
-  // Null value to use Microsoft managed storage account
+  # Boot diagnostics to enable serial console
+  # Null value to use Microsoft managed storage account
   boot_diagnostics {
     storage_account_uri = null
   }
 
 }
 
-// VIRTUAL MACHINE ADMIN SECRET FROM KEY VAULT
+# VIRTUAL MACHINE ADMIN SECRET FROM KEY VAULT
 data "azurerm_key_vault_secret" "vm_secret" {
   name         = var.iaas_app_vm_secret
   key_vault_id = data.azurerm_key_vault.common_kv.id
 }
 
-// VIRTUAL MACHINE NIC
+# VIRTUAL MACHINE NIC
 resource "azurerm_network_interface" "iaas_app_vm_nic" {
   name                = "${var.iaas_app_name_prefix}-vm-nic"
   location            = azurerm_resource_group.iaas_app_rg.location

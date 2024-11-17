@@ -1,10 +1,10 @@
-// RESOURCE GROUP
+# RESOURCE GROUP
 resource "azurerm_resource_group" "data_rg" {
   name     = "${var.data_name_prefix}-rg"
   location = var.common_location
 }
 
-// MSSQL SERVER & DATABASE
+# MSSQL SERVER & DATABASE
 resource "azurerm_mssql_server" "mssql_server" {
   name                = "${var.data_name_prefix}-mssql-server"
   resource_group_name = azurerm_resource_group.data_rg.name
@@ -12,7 +12,7 @@ resource "azurerm_mssql_server" "mssql_server" {
   version             = "12.0"
   minimum_tls_version = "1.2"
 
-  // SQL Administrator
+  # SQL Administrator
   administrator_login          = var.data_db_admin
   administrator_login_password = data.azurerm_key_vault_secret.db_secret.value
 
@@ -32,7 +32,7 @@ resource "azurerm_mssql_database" "mssql_db" {
   sku_name                    = "Basic"
   storage_account_type        = "Local"
 
-  // Import initial DB setup from Terraform storage account backend
+  # Import initial DB setup from Terraform storage account backend
   import {
     storage_uri                  = "${data.azurerm_storage_account.common_terraform_backend.primary_blob_endpoint}${var.data_db_setup_bacpac_path}"
     storage_key                  = data.azurerm_storage_account.common_terraform_backend.primary_access_key
@@ -43,9 +43,9 @@ resource "azurerm_mssql_database" "mssql_db" {
   }
 }
 
-// Allow trusted Azure services
-// Note: this option is necessary for the DB import, since the Terraform pipeline
-// is not integrated on the private network
+# Allow trusted Azure services
+# Note: this option is necessary for the DB import, since the Terraform pipeline
+# is not integrated on the private network
 resource "azurerm_mssql_firewall_rule" "AllowTrustedAzureServices" {
   name             = "AllowTrustedAzureServices"
   server_id        = azurerm_mssql_server.mssql_server.id
@@ -53,7 +53,7 @@ resource "azurerm_mssql_firewall_rule" "AllowTrustedAzureServices" {
   end_ip_address   = "0.0.0.0"
 }
 
-// PRIVATE NETWORKING 
+# PRIVATE NETWORKING 
 
 resource "azurerm_private_dns_zone" "data_dns_zone" {
   name                = "privatelink.database.windows.net"

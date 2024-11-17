@@ -1,21 +1,21 @@
-// EXISTING BACKEND STORAGE ACCOUNT
+# EXISTING BACKEND STORAGE ACCOUNT
 data "azurerm_storage_account" "common_terraform_backend" {
   name                = var.common_terraform_backend_name
   resource_group_name = var.common_terraform_backend_rg
 }
 
-// EXISTING RESOURCE GROUP FOR COMMON RESOURCES
+# EXISTING RESOURCE GROUP FOR COMMON RESOURCES
 data "azurerm_resource_group" "common_rg" {
   name = var.common_terraform_backend_rg
 }
 
-// EXISTING KEY VAULT
+# EXISTING KEY VAULT
 data "azurerm_key_vault" "common_kv" {
   name                = "${var.common_name_prefix}-kv"
   resource_group_name = var.common_terraform_backend_rg
 }
 
-// VIRTUAL NETWORK
+# VIRTUAL NETWORK
 resource "azurerm_virtual_network" "common_vnet" {
   name                = "${var.common_name_prefix}-vnet"
   address_space       = [var.common_vnet_range]
@@ -23,19 +23,19 @@ resource "azurerm_virtual_network" "common_vnet" {
   resource_group_name = var.common_terraform_backend_rg
 }
 
-// VIRTUAL NETWORK SUBNETS
+# VIRTUAL NETWORK SUBNETS
 resource "azurerm_subnet" "common_subnets" {
 
-  // Subnet parameters definition
+  # Subnet parameters definition
   for_each = local.common_subnet_info
 
-  // Subnet parameters assignment 
+  # Subnet parameters assignment 
   name                 = each.key
   address_prefixes     = [each.value]
   resource_group_name  = azurerm_virtual_network.common_vnet.resource_group_name
   virtual_network_name = azurerm_virtual_network.common_vnet.name
 
-  // Delegation for App Service VNet Integration if subnet is "cw-paas-web_app-int-subnet"
+  # Delegation for App Service VNet Integration if subnet is "cw-paas-web_app-int-subnet"
   dynamic "delegation" {
     for_each = each.key == "cw-paas-web-app-int-subnet" ? toset([1]) : toset([])
     content {
@@ -50,7 +50,7 @@ resource "azurerm_subnet" "common_subnets" {
   }
 }
 
-// NETWORK SECURITY GROUP
+# NETWORK SECURITY GROUP
 resource "azurerm_network_security_group" "common_nsg" {
   name                = "${var.common_name_prefix}-nsg"
   location            = data.azurerm_resource_group.common_rg.location
@@ -58,7 +58,7 @@ resource "azurerm_network_security_group" "common_nsg" {
 
 }
 
-// Allow web traffic from Internet
+# Allow web traffic from Internet
 resource "azurerm_network_security_rule" "common_nsg_rule_AllowWebFromInternet" {
   network_security_group_name = azurerm_network_security_group.common_nsg.name
   resource_group_name         = azurerm_network_security_group.common_nsg.resource_group_name
@@ -73,7 +73,7 @@ resource "azurerm_network_security_rule" "common_nsg_rule_AllowWebFromInternet" 
   destination_address_prefix  = "*"
 }
 
-// Allow incoming Internet traffic to App Gateway
+# Allow incoming Internet traffic to App Gateway
 resource "azurerm_network_security_rule" "common_nsg_rule_AllowIncomingAppGateway" {
   network_security_group_name = azurerm_network_security_group.common_nsg.name
   resource_group_name         = azurerm_network_security_group.common_nsg.resource_group_name
@@ -94,7 +94,7 @@ resource "azurerm_subnet_network_security_group_association" "common_nsg_associa
   network_security_group_id = azurerm_network_security_group.common_nsg.id
 }
 
-// APP GATEWAY
+# APP GATEWAY
 
 resource "azurerm_public_ip" "common_gateway_public_ip" {
   name                = "${var.common_name_prefix}-gateway-public-ip"
@@ -106,7 +106,7 @@ resource "azurerm_public_ip" "common_gateway_public_ip" {
 
 resource "azurerm_application_gateway" "common_gateway" {
 
-  // BASIC APP GATEWAY SETTINGS
+  # BASIC APP GATEWAY SETTINGS
   name                = "${var.common_name_prefix}-gateway"
   resource_group_name = var.common_terraform_backend_rg
   location            = data.azurerm_resource_group.common_rg.location
