@@ -1,3 +1,3 @@
-output "cw-app-gateway-public-ip" {
-  value = azurerm_public_ip.cw-app-gateway-public-ip.ip_address
+output "common_gateway_public_ip" {
+  value = azurerm_public_ip.common_gateway_public_ip.ip_address
 }

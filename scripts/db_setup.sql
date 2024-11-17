@@ -1,4 +1,4 @@
-USE [cw-mssql-app-db]
+USE [cw-data-mssql-db]
 GO
 
 SET ANSI_NULLS ON
@@ -40,7 +40,7 @@ INSERT INTO [dbo].[BUCKET_LIST_ITEMS]
 		(10	, N'Not spending all my salary on Genshin Impact 💸', 0 ),
 		(11	, N'Setting the record for the most people doing the Macarena on pogo sticks 💃', 1 ),
 		(12	, N'Hosting a "Lip Sync Battle for Pets" contest 🐶', 0 ),
-		(13	, N'Becoming the best at zero-gravity dinosaur yoga 🧘‍♂', 1 ),
+		(13	, N'Becoming the best at zero_gravity dinosaur yoga 🧘‍♂', 1 ),
 		(14	, N'Singing karaoke while eating a pasta bowl 🎤', 0 ),
 		(15	, N'Using ChatGPT to generate these ideas because I am lazy 🧠', 1 )
 GO
