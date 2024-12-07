@@ -73,7 +73,7 @@ module "mssql_server_endpoint" {
   resource_group_name                = azurerm_resource_group.data_rg.name
   private_link_enabled_resource_name = azurerm_mssql_server.mssql_server.name
   private_link_enabled_resource_id   = azurerm_mssql_server.mssql_server.id
-  subnet_id                          = azurerm_subnet.common_subnets["cw-db-subnet"].id
+  subnet_id                          = azurerm_subnet.common_subnets["cw-data-subnet"].id
   subresource_names                  = ["sqlServer"]
   private_dns_zone_id                = azurerm_private_dns_zone.data_dns_zone.id
 }
