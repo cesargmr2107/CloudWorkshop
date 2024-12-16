@@ -47,8 +47,7 @@ variable "common_subnet_list" {
     "cw-iaas-web-app-subnet",
     "cw-paas-web-app-pe-subnet",
     "cw-paas-web-app-int-subnet",
-    "cw-data-subnet",
-    "cw-test-subnet"
+    "cw-data-subnet"
   ]
   description = "A list of names for the subnets to be created in the virtual network."
 }
